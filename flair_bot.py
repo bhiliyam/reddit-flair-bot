@@ -1,14 +1,13 @@
-import praw
-from time import time
 from collections import deque
-import os.path
-import csv
-import pickle
 import os
+import os.path
+import pickle
 import urlparse
-import psycopg2
+from time import time
 
-# Authentication info (manually set Heroku config)
+import praw
+import psycopg2
+# Authentication info (manually set Heroku config for your reddit app)
 CLIENT_ID = os.environ["CLIENT_ID"]
 CLIENT_SECRET = os.environ["CLIENT_SECRET"]
 USERNAME = os.environ["USERNAME"]
@@ -29,11 +28,11 @@ NEGLECT_AGE = 600
 
 class Bot(object):
     def __init__(self):
-        self.r = praw.Reddit(client_id = CLIENT_ID,
-                client_secret = CLIENT_SECRET,
-                username = USERNAME,
-                password = PASSWORD,
-                user_agent = USER_AGENT)
+        self.r = praw.Reddit(client_id=CLIENT_ID,
+                             client_secret=CLIENT_SECRET,
+                             username=USERNAME,
+                             password=PASSWORD,
+                             user_agent=USER_AGENT)
         super(Bot, self).__init__()
 
 
@@ -67,7 +66,7 @@ class FlairMixin(object):
 
     def flair_action(self, post):
         if self.should_warn(post):
-           self.warn_user(post)
+            self.warn_user(post)
 
     def manage_queue(self):
         q = self._queue
@@ -86,17 +85,18 @@ class FlairMixin(object):
                 print 'Remove post', post.id
                 post.mod.remove()
 
+
 class FlairMixinDB(FlairMixin):
     def __init__(self):
         super(FlairMixinDB, self).__init__()
         urlparse.uses_netloc.append("postgres")
         url = urlparse.urlparse(DATABASE_URL)
         self.conn = psycopg2.connect(
-            database = url.path[1:],
-            user = url.username,
-            password = url.password,
-            host = url.hostname,
-            port = url.port
+            database=url.path[1:],
+            user=url.username,
+            password=url.password,
+            host=url.hostname,
+            port=url.port
         )
         self.recover()
 
@@ -128,7 +128,7 @@ class FlairMixinDB(FlairMixin):
         if not self._pending:
             self._pending = set()
         if not self._queue:
-            self._queue =  deque()
+            self._queue = deque()
 
     def flair_action(self, post):
         super(FlairMixinDB, self).flair_action(post)
@@ -137,6 +137,7 @@ class FlairMixinDB(FlairMixin):
     def manage_queue(self):
         super(FlairMixinDB, self).manage_queue()
         self.save()
+
 
 class MyModerationBot(Bot, FlairMixinDB):
     def __init__(self):
@@ -153,6 +154,9 @@ class MyModerationBot(Bot, FlairMixinDB):
             self.flair_action(post)
 
 
-if __name__ == '__main__':
+def main():
     bot = MyModerationBot()
     bot.loop()
+
+if __name__ == '__main__':
+    main()
