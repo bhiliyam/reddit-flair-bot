@@ -91,33 +91,55 @@ class FlairMixinDB(FlairMixin):
         super(FlairMixinDB, self).__init__()
         urlparse.uses_netloc.append("postgres")
         url = urlparse.urlparse(DATABASE_URL)
-        self.conn = psycopg2.connect(
+        self._conn = psycopg2.connect(
             database=url.path[1:],
             user=url.username,
             password=url.password,
             host=url.hostname,
             port=url.port
         )
-        self.recover()
+        if self._db_has_tables():
+            self._db_recover()
+        else:
+            self._db_create_tables()
+
+    def _db_has_tables(self):
+        cur.execute("select exists(select * from information_schema.tables \
+                where table_name=%s)", ('data',))
+        return cur.fetchone()[0]
+
+    def _db_create_tables(self):
+        cur = self._conn.cursor()
+        cur.execute("CREATE TABLE data (\
+                id      VARCHAR PRIMARY KEY,
+                value   VARCHAR);")
+        _db_insert(cur, 'accessed', None)
+        _db_insert(cur, 'pending', set())
+        _db_insert(cur, 'queue', deque())
+        self._conn.commit()
 
     @staticmethod
     def _db_send_update(cur, k, v):
         cur.execute("UPDATE data SET value = %s WHERE id = %s", (pickle.dumps(v), k))
 
     @staticmethod
+    def _db_insert(cur, k, v):
+        cur.execute("INSERT INTO data (id, value) VALUES (%s, %s)", (k, pickle.dumps(v)))
+
+    @staticmethod
     def _db_query(cur, k):
         cur.execute("SELECT value FROM data WHERE id = %s", (k,))
         return pickle.loads(cur.fetchone()[0])
 
-    def save(self):
-        cur = self.conn.cursor()
+    def _db_save(self):
+        cur = self._conn.cursor()
         self._db_send_update(cur, 'accessed', time())
         self._db_send_update(cur, 'pending', self._pending)
         self._db_send_update(cur, 'queue', self._queue)
-        self.conn.commit()
+        self._conn.commit()
 
-    def recover(self):
-        cur = self.conn.cursor()
+    def _db_recover(self):
+        cur = self._conn.cursor()
         self._pending = self._db_query(cur, 'pending')
         self._queue = self._db_query(cur, 'queue')
 
@@ -125,18 +147,13 @@ class FlairMixinDB(FlairMixin):
         print "pending:", self._pending
         print "queue:", self._queue
 
-        if not self._pending:
-            self._pending = set()
-        if not self._queue:
-            self._queue = deque()
-
     def flair_action(self, post):
         super(FlairMixinDB, self).flair_action(post)
-        self.save()
+        self._db_save()
 
     def manage_queue(self):
         super(FlairMixinDB, self).manage_queue()
-        self.save()
+        self._db_save()
 
 
 class MyModerationBot(Bot, FlairMixinDB):
