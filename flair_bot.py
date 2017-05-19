@@ -17,9 +17,9 @@ DATABASE_URL = os.environ["DATABASE_URL"]
 # Text of comment that will be posted as warning
 FLAIR_WARNING = 'Add a flair to your post, bruh'
 # Number of seconds to wait before posting warning
-IGNORE_PERIOD = 10
+IGNORE_PERIOD = 60
 # Number of seconds to wait before removing post
-GRACE_PERIOD = 60
+GRACE_PERIOD = 600
 # Ignore posts that are older than this
 NEGLECT_AGE = 600
 

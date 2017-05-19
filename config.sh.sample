@@ -1,8 +1,11 @@
 #!/bin/bash
-CLIENT_ID=""
-CLIENT_SECRET=""
-PASSWORD=""
-USERNAME=""
 
-# Set DATABASE_URL here if you want to use an existing database
-DATABASE_URL=""
+# Authentication info
+CLIENT_ID=
+CLIENT_SECRET=
+PASSWORD=
+USERNAME=
+
+# Set DATABASE_URL here if you want to use an existing database.
+# (Otherwise, a new Heroku PostgreSQL database will automatically be created.)
+DATABASE_URL=
