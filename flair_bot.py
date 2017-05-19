@@ -7,14 +7,11 @@ from time import time
 
 import praw
 import psycopg2
-# Authentication info (manually set Heroku config for your reddit app)
 CLIENT_ID = os.environ["CLIENT_ID"]
 CLIENT_SECRET = os.environ["CLIENT_SECRET"]
 USERNAME = os.environ["USERNAME"]
 PASSWORD = os.environ["PASSWORD"]
 USER_AGENT = 'FlairBotv0.1'
-
-# PostgreSQL database url (set by Heroku when you add PostgreSQL addon)
 DATABASE_URL = os.environ["DATABASE_URL"]
 
 # Text of comment that will be posted as warning
@@ -104,6 +101,7 @@ class FlairMixinDB(FlairMixin):
             self._db_create_tables()
 
     def _db_has_tables(self):
+        cur = self._conn.cursor()
         cur.execute("select exists(select * from information_schema.tables \
                 where table_name=%s)", ('data',))
         return cur.fetchone()[0]
@@ -111,11 +109,11 @@ class FlairMixinDB(FlairMixin):
     def _db_create_tables(self):
         cur = self._conn.cursor()
         cur.execute("CREATE TABLE data (\
-                id      VARCHAR PRIMARY KEY,
+                id      VARCHAR PRIMARY KEY,\
                 value   VARCHAR);")
-        _db_insert(cur, 'accessed', None)
-        _db_insert(cur, 'pending', set())
-        _db_insert(cur, 'queue', deque())
+        self._db_insert(cur, 'accessed', None)
+        self._db_insert(cur, 'pending', set())
+        self._db_insert(cur, 'queue', deque())
         self._conn.commit()
 
     @staticmethod
