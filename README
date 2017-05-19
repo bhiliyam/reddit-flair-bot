@@ -1,0 +1,9 @@
+Instructions for deploying on Heroku
+------------------------------------
+
+1. Copy config.sh.sample to config.sh
+2. Set the variables in config.sh
+3. Run bootstrap.sh
+
+You would also probably want to run "chmod 600 config.sh" to make sure your
+login information isn't visible to other users.

@@ -1,0 +1,8 @@
+#!/bin/bash
+CLIENT_ID=""
+CLIENT_SECRET=""
+PASSWORD=""
+USERNAME=""
+
+# Set DATABASE_URL here if you want to use an existing database
+DATABASE_URL=""
